@@ -1,0 +1,79 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+public class MainApp {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        String inputFilePath = getInputFilePath(scanner);
+        System.out.print("Enter the path to the output text file: ");
+        String outputFilePath = scanner.nextLine();
+
+        try {
+            Map<String, Integer> wordCounts = countWordsInFile(inputFilePath);
+            int totalWords = wordCounts.values().stream().mapToInt(Integer::intValue).sum();
+
+            System.out.println("The number of words in the input file is: " + totalWords);
+            wordCounts.forEach((word, count) -> System.out.println(word + ": " + count));
+
+            writeOutputFile(outputFilePath, inputFilePath, totalWords, wordCounts);
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private static String getInputFilePath(Scanner scanner) {
+        while (true) {
+            System.out.print("Enter the path to the input text file: ");
+            String inputFilePath = scanner.nextLine();
+            if (inputFileExists(inputFilePath)) {
+                return inputFilePath;
+            } else {
+                System.out.println("File not found. Please try again.");
+            }
+        }
+    }
+
+    private static boolean inputFileExists(String filePath) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private static Map<String, Integer> countWordsInFile(String filePath) throws IOException {
+        Map<String, Integer> wordCounts = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] words = line.split("\\W+");
+                for (String word : words) {
+                    if (!word.isEmpty()) {
+                        wordCounts.put(word, wordCounts.getOrDefault(word, 0) + 1);
+                    }
+                }
+            }
+        }
+        return wordCounts;
+    }
+
+    private static void writeOutputFile(String outputFilePath, String inputFilePath, int totalWords, Map<String, Integer> wordCounts) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath))) {
+            writer.write("File name: " + inputFilePath);
+            writer.newLine();
+            writer.write("Total number of words: " + totalWords);
+            writer.newLine();
+            for (Map.Entry<String, Integer> entry : wordCounts.entrySet()) {
+                writer.write(entry.getKey() + ": " + entry.getValue());
+                writer.newLine();
+            }
+        }
+    }
+}
